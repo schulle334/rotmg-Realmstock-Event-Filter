@@ -19,7 +19,7 @@ function filterEvents() {
             const maxPopulation = populationMatch ? parseInt(populationMatch[2], 10) : 0;
 
             // Ereignis filtern, wenn Score > 70 und Spieleranzahl > 60/85
-            if (score > 70 && currentPopulation > 60 && maxPopulation === 85) {
+            if (score > 50 && currentPopulation > 40 && maxPopulation === 85) {
                 event.style.display = 'block';
             } else {
                 event.style.display = 'none';

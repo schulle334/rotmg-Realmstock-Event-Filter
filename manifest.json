@@ -1,19 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "Event Filter",
+  "name": "Event Filter Extension",
   "version": "1.0",
-  "description": "Filter events with score over 70% and player over 60",
-  "permissions": [
-    "scripting",
-    "activeTab"
-  ],
-
+  "description": "Filtert und verwaltet Ereignisse basierend auf Benutzerkriterien.",
+  "permissions": ["scripting", "activeTab", "storage", "notifications"],
   "background": {
     "service_worker": "background.js"
   },
+  "action": {
+    "default_popup": "popup.html"
+
+  },
+
   "content_scripts": [
     {
-      "matches": ["https://realmstock.com/pages/event-notifier"],  
+      "matches": ["https://realmstock.com/pages/event-notifier"],
       "js": ["content.js"]
     }
   ]

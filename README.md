@@ -21,9 +21,8 @@ Visit the https://realmstock.com/pages/event-notifier website.
 Events will be automatically filtered according to the set criteria.
 
 Configuration
-
-content.js: Contains the logic for filtering events based on score and player count.
-manifest.json: Configures the extension and loads the content script on target pages.
+open the gui popout too change the values and apply ,
+after that refrehs the site
 
 License
 This project is licensed under the MIT License. See the LICENSE file for details.

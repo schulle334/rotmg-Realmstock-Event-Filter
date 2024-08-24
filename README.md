@@ -8,7 +8,7 @@ Installation
 Download: Clone this repository or download the ZIP file.
 
 
-git clone https://github.com/schulle334//Realmstock-Event-Filter.git
+git clone https://github.com/schulle334/rotmg-Realmstock-Event-Filter.git
 
 Load the Extension:
 
@@ -44,7 +44,7 @@ Installation
 Download: Klonen Sie dieses Repository oder laden Sie die ZIP-Datei herunter.
 
 
-git clone https://github.com/schulle334//Realmstock-Event-Filter.git
+git clone https://github.com/schulle334/rotmg-Realmstock-Event-Filter.git
 
 Laden Sie die Erweiterung:
 

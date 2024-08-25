@@ -1,6 +1,72 @@
-// Funktion zum Filtern der Ereignisse, Entfernen von Duplikaten und Anzeigen nur der letzten X Minuten alten Einträge
+// HTML for the filter
+const filterHTML = `
+    <div class="option-section">
+        <strong>Event Filter</strong>
+        <label for="minScore">Min. Score:</label>
+        <input type="number" id="minScore" value="70" style="width: 80px; background-color: transparent; border: 1px solid #ccc; color: white;">
+        
+        <label for="minPopulation">Min. Players:</label>
+        <input type="number" id="minPopulation" value="40" style="width: 80px; background-color: transparent; border: 1px solid #ccc; color: white;">
+        
+        <label for="timeLimitMinutes">Time Limit (min):</label>
+        <input type="number" id="timeLimitMinutes" value="5" style="width: 80px; background-color: transparent; border: 1px solid #ccc; color: white;">
+        
+        <button id="applySettings">Apply Settings</button>
+        <div id="feedback" style="margin-top: 10px;"></div>
+    </div>
+`;
+// Insert the filter into the <div class="options-grid">
+function injectFilterIntoOptionsGrid() {
+    const optionsGrid = document.querySelector('.options-grid');
+    if (optionsGrid) {
+        optionsGrid.insertAdjacentHTML('beforeend', filterHTML);
+        console.log('Filter HTML in options-grid eingefügt');
+        initFilterEventHandlers();
+    } else {
+        console.warn('options-grid nicht gefunden.');
+    }
+}
+
+// Initialize event handler for the filter
+function initFilterEventHandlers() {
+    const applySettingsButton = document.getElementById('applySettings');
+    if (applySettingsButton) {
+        applySettingsButton.addEventListener('click', () => {
+            const minScore = parseInt(document.getElementById('minScore').value, 10) || 0;
+            const minPopulation = parseInt(document.getElementById('minPopulation').value, 10) || 0;
+            const timeLimitMinutes = parseInt(document.getElementById('timeLimitMinutes').value, 10) || 0;
+
+            if (isNaN(minScore) || isNaN(minPopulation) || isNaN(timeLimitMinutes)) {
+                document.getElementById('feedback').textContent = 'Please enter valid numbers.';
+                document.getElementById('feedback').style.color = 'red';
+                return;
+            }
+
+            chrome.storage.sync.set({
+                minScore,
+                minPopulation,
+                timeLimitMinutes
+            }, () => {
+                document.getElementById('feedback').textContent = 'Settings saved';
+                document.getElementById('feedback').style.color = 'green';
+
+                // Apply filter immediately after settings are saved
+                filterEvents({
+                    minScore,
+                    minPopulation,
+                    timeLimitMinutes
+                });
+            });
+        });
+    } else {
+        console.warn('Button für Einstellungen nicht gefunden.');
+    }
+}
+
+
+// Function to filter the events
 function filterEvents(userSettings) {
-    const { minScore, minPopulation, maxPopulation, timeLimitMinutes } = userSettings;
+    const { minScore, minPopulation, timeLimitMinutes } = userSettings;
     const events = document.querySelectorAll('.realmstock-panel.event');
     const seenEvents = new Set();
     const currentTime = new Date();
@@ -27,29 +93,56 @@ function filterEvents(userSettings) {
             const eventTime = new Date(currentTime);
             eventTime.setHours(eventHours);
             eventTime.setMinutes(eventMinutes);
+            eventTime.setSeconds(0); // Make sure the seconds are set to 0
 
-            const timeDifference = (currentTime - eventTime) / 1000 / 60; // in Minuten
+            const timeDifference = (currentTime - eventTime) / (1000 * 60); // in minutes
 
             const eventKey = `${titleElement.textContent.trim()}-${serverElement.textContent.trim()}-${currentPopulation}/${maxPopulationValue}`;
 
             if (seenEvents.has(eventKey) || 
                 score < minScore || 
                 currentPopulation < minPopulation || 
-                maxPopulationValue !== maxPopulation || 
+                maxPopulationValue !== 85 || // The maximum number is always 85
                 timeDifference > timeLimitMinutes) {
                 event.style.display = 'none';
             } else {
                 event.style.display = 'block';
                 seenEvents.add(eventKey);
             }
+        } else {
+            console.warn('One or more required elements are missing:', {
+                scoreElement,
+                populationElement,
+                titleElement,
+                serverElement,
+                timeElement
+            });
         }
     });
 }
 
-// Einstellungen laden und Filter anwenden
-chrome.storage.sync.get(['minScore', 'minPopulation', 'maxPopulation', 'timeLimitMinutes'], (userSettings) => {
-    filterEvents(userSettings);
 
-    // Wiederholtes Filtern alle 1000 Millisekunden
-    setInterval(() => filterEvents(userSettings), 1000);
-});
+// Use MutationObserver to ensure that the options-grid is fully loaded
+function observeOptionsGrid() {
+    const observer = new MutationObserver((mutationsList) => {
+        for (const mutation of mutationsList) {
+            if (mutation.type === 'childList' && document.querySelector('.options-grid')) {
+                injectFilterIntoOptionsGrid();
+                observer.disconnect(); // Stop watching after the filter is inserted
+            }
+        }
+    });
+
+// Watch the document
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Initialize the filter after loading the page
+observeOptionsGrid();
+
+// Repeat filtering every 1000 milliseconds (1 seconds) 
+setInterval(() => {
+    chrome.storage.sync.get(['minScore', 'minPopulation', 'maxPopulation', 'timeLimitMinutes'], (updatedSettings) => {
+        filterEvents(updatedSettings);
+    });
+}, 1000);

@@ -65,6 +65,7 @@ function initFilterEventHandlers() {
 
 
 // Function to filter the events
+// Function to filter the events
 function filterEvents(userSettings) {
     const { minScore, minPopulation, timeLimitMinutes } = userSettings;
     const events = document.querySelectorAll('.realmstock-panel.event');
@@ -78,7 +79,9 @@ function filterEvents(userSettings) {
         const serverElement = event.querySelector('.event-server');
         const timeElement = event.querySelector('.event-time');
 
+        // Check that the elements exist
         if (scoreElement && populationElement && titleElement && serverElement && timeElement) {
+            // Extract event details
             const scoreText = scoreElement.textContent.trim();
             const scoreMatch = scoreText.match(/Score:\s*(\d+)%/);
             const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
@@ -93,21 +96,34 @@ function filterEvents(userSettings) {
             const eventTime = new Date(currentTime);
             eventTime.setHours(eventHours);
             eventTime.setMinutes(eventMinutes);
-            eventTime.setSeconds(0); // Make sure the seconds are set to 0
+            eventTime.setSeconds(0);
 
             const timeDifference = (currentTime - eventTime) / (1000 * 60); // in minutes
 
             const eventKey = `${titleElement.textContent.trim()}-${serverElement.textContent.trim()}-${currentPopulation}/${maxPopulationValue}`;
 
-            if (seenEvents.has(eventKey) || 
-                score < minScore || 
-                currentPopulation < minPopulation || 
-                maxPopulationValue !== 85 || // The maximum number is always 85
-                timeDifference > timeLimitMinutes) {
-                event.style.display = 'none';
-            } else {
+            // Check if the event is "Realm Closed"
+            const isRealmClosed = titleElement.textContent.trim() === "Realm Closed";
+
+            // Logic to determine if event should be displayed
+            if (isRealmClosed) {
+                // Always display "Realm Closed" events
                 event.style.display = 'block';
-                seenEvents.add(eventKey);
+            } else {
+                // Apply filtering for non-"Realm Closed" events
+                const shouldHideEvent = timeDifference > timeLimitMinutes || 
+                                        seenEvents.has(eventKey) || 
+                                        score < minScore || 
+                                        currentPopulation < minPopulation || 
+                                        maxPopulationValue !== 85;
+
+                // Toggle visibility based on filters
+                if (shouldHideEvent) {
+                    event.style.display = 'none';
+                } else {
+                    event.style.display = 'block';
+                    seenEvents.add(eventKey);
+                }
             }
         } else {
             console.warn('One or more required elements are missing:', {
@@ -120,7 +136,6 @@ function filterEvents(userSettings) {
         }
     });
 }
-
 
 // Use MutationObserver to ensure that the options-grid is fully loaded
 function observeOptionsGrid() {

@@ -64,7 +64,7 @@ function initFilterEventHandlers() {
 }
 
 
-// Function to filter the events
+
 // Function to filter the events
 function filterEvents(userSettings) {
     const { minScore, minPopulation, timeLimitMinutes } = userSettings;
